@@ -1,0 +1,63 @@
+<!DOCTYPE html><html><head><title>请输入验证码 - 雪球</title><link rel="stylesheet" href="http://assets.imedao.com/style/common/base-efef0c.css"><style>.captcha {padding: 100px 0 0;font-family: "Helvetica Neue","Helvetica","Tahoma","Source Han Sans CN","Noto Sans S Chinese","Hiragino Sans GB","Microsoft YaHei","sans-serif";}
+.img{float:left;}
+.img img{float:left;}
+.input{float:left;padding:0 0 0 20px;height: 53px;overflow: hidden}
+.input input{float:left;line-height: 21px;padding:15px;font-size: 15px;margin:0;border:1px solid #ccc;font-family:inherit;box-shadow: 1px 1px 1px rgba(0,0,0,.1) inset;letter-spacing: 1px;height: 21px;overflow: hidden}
+.submit{float:left;padding-left:15px;overflow: hidden;height: 53px;}
+.submit button{background:#0077dd;border: 0 none;color: #fff;cursor: pointer;float: left;height: 53px;letter-spacing: 3px;line-height: 1;text-align: center;padding:0 20px;font-size: 15px;box-shadow: 1px 1px 1px rgba(0,0,0,.1);overflow: hidden;}
+.tips{padding-bottom: 20px;font-size: 16px;color:#666;}</style></head><body><div id="head"><div class="grid"><div class="col col-12-2"><h1 id="logo"><img src="http://assets.imedao.com/images/logo@2x.png" alt="雪球"></h1></div></div></div><div id="container"><div class="captcha"><div class="tips">系统检测到您的IP最近访问过于频繁，请输入验证码以继续访问</div><div class="img"><img data-src="/service/captcha/img" id="code"></div><div class="input"><input type="text" id="input" maxlength="4" value="" placeholder="请输入验证码"></div><div class="submit"><button id="submit">提交</button></div></div></div><script src="http://assets.imedao.com/js/common/lib/jquery-1.9.1-3dd6ee.js"></script><script>(function ($) {
+  var $img = $('#code');
+  var $input = $('#input');
+  var $submit = $('#submit');
+  var getCode = (function () {
+    var xhr;
+    return function () {
+      if (xhr) {
+        xhr.abort();
+      }
+      xhr = $.get('/service/captcha/id').done(function () {
+        $img.attr('src', $img.data('src') + '?_=' + $.now().toString(36));
+      }).fail(function () {
+      
+      });
+    };
+  })();
+  
+  function disabled(){
+    $input.attr('disabled', 'disabled');
+    $submit.attr('disabled', 'disabled');
+  }
+  
+  function enabled(){
+    $input.removeAttr('disabled');
+    $submit.removeAttr('disabled');
+  }
+  
+  $input.on('keypress', function (e) {
+    if (e.key === 'Enter' || e.keyCode === 13) {
+      $('#submit').trigger('click');
+    }
+  });
+  $img.on('click', function () { getCode(); }).trigger('click');
+  $submit.on('click', function () {
+    var val = $input.val();
+    if (!$.trim(val)) {
+      return alert('请填写验证码。');
+    }
+    disabled();
+    $.post('/service/captcha', {
+      code: $input.val()
+    }).done(function () {
+      setTimeout(function () {
+        window.location.reload();
+        //window.location.href = '/';
+      }, 1000);
+    }).fail(function () {
+      alert('验证码填写错误，请重新填写验证码。');
+      $img.trigger('click');
+      $input.val('');
+      enabled();
+    });
+    return false;
+  });
+})(jQuery);</script></body></html>
